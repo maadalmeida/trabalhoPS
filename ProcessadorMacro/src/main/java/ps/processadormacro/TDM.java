@@ -54,7 +54,7 @@ public class TDM {
     }
     
     protected void setDefinicaoMacro(int indexLinha) {
-        String temp = linhas.get(indexLinha);
+        String temp = linhas.get(indexLinha).replace("\t", " ");
         int cont, aux = 0;
         for(cont = 0; cont < parametros.size(); cont++) {
             if(temp.contains(parametros.get(cont))) {
