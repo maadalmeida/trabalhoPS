@@ -165,6 +165,7 @@ public class JFramePM extends javax.swing.JFrame {
             int cont, auxChamada;
             for(cont = 0; rBuffer.ready(); cont++){
                 linhas.add(rBuffer.readLine());
+                linhas.set(cont, linhas.get(cont).replace("\t", " "));
                 if(verificacaoDefinicao(cont)) {
                     cont = modoDefinicao(rBuffer, cont);
                 } else if((auxChamada = verificacaoChamada(cont)) >= 0) {
@@ -173,6 +174,7 @@ public class JFramePM extends javax.swing.JFrame {
                     modoCopia(wBuffer, cont);
                 }
             }
+            
             rBuffer.close();
             rArquivo.close();
             wBuffer.close();
@@ -248,58 +250,102 @@ public class JFramePM extends javax.swing.JFrame {
         });
     }
     
-        private static boolean verificacaoDefinicao(int indexLinha) {
+    private static boolean verificacaoDefinicao(int indexLinha) {
         return linhas.get(indexLinha).contains("MACRO");
     }
     
     private static int verificacaoChamada(int indexLinha) {
-        String temp = linhas.get(indexLinha);
-        int cont, numeroMacrosDefinidas = tabela.getNumeroMacrosDefinidas();
-        for(cont = 0; cont < numeroMacrosDefinidas; cont++) {
-            if(temp.contains(tabela.getNomeMacro(cont))) {
-                return cont;
+        String temp[] = linhas.get(indexLinha).split(" ");
+        int cont, contMacro, numeroMacrosDefinidas = tabela.getNumeroMacrosDefinidas();
+        
+        for(contMacro = numeroMacrosDefinidas - 1; contMacro >= 0; contMacro--) {                   //caso haja redefinição, identifica primeiro a definição mais recente
+            for(cont = 0; (cont < 2) && (cont < temp.length); cont++) {                             //caso contenha label na linha de chamada
+                if(temp[cont].contentEquals(tabela.getNomeMacro(contMacro))){                       //equalsIgnoreCase também funciona
+                    return contMacro;                                                               //retorna index da macro chamada
+                }
             }
         }
         return -1;
     }
     
-    private static int modoDefinicao(BufferedReader buffer, int indexLinha) throws IOException {
-        //incompleto
+    private static int modoDefinicao(BufferedReader rBuffer, int indexLinha) throws IOException {
         String temp = linhas.get(indexLinha);
-        int auxDelimitador = temp.indexOf("MACRO");
-        tabela.setPrototipoMacro(temp, auxDelimitador);
+        int contAninhamento = 0;
+        boolean macroInterna = false;
+        tabela.setPrototipoMacro(temp);
         
         do {
-            linhas.add(buffer.readLine());
+            if(linhas.get(indexLinha).contains("ENDM") && macroInterna) {
+                contAninhamento--;
+                if(contAninhamento == 0) {
+                    macroInterna = false;
+                }
+            }
+            linhas.add(rBuffer.readLine());
             indexLinha++;
-            tabela.setDefinicaoMacro(indexLinha);
-        } while(!linhas.get(indexLinha).contains("ENDM"));
+            linhas.set(indexLinha, linhas.get(indexLinha).replace("\t", " "));
+            if(linhas.get(indexLinha).contains("MACRO")) {
+                contAninhamento++;
+                macroInterna = true;
+            }
+            tabela.setDefinicaoMacro(linhas.get(indexLinha), macroInterna);
+        } while(!linhas.get(indexLinha).contains("ENDM") || contAninhamento != 0);
         
         tabela.limpaParametros();
         
         return indexLinha;
     }
     
-    private static void modoExpansao(BufferedWriter buffer, int indexPrototipoMacro, int indexLinha) throws IOException {
-        ArrayList<String> parametrosReais = tabela.getParametrosChamada(indexLinha);
+    private static void modoExpansao(BufferedWriter wBuffer, int indexPrototipo, int indexLinha) throws IOException {
+        ArrayList<String> parametrosReais = new ArrayList<>();
+        parametrosReais.addAll(tabela.getParametrosChamada(indexPrototipo, indexLinha));
+        tabela.limpaParametros();
         String temp;
-        int contLinha, contParametro;
-        for(contLinha = tabela.getContador(indexPrototipoMacro); !tabela.getLinhaDefinicao(contLinha).contains("ENDM"); contLinha++) {
-            temp = tabela.getLinhaDefinicao(contLinha);
-            for(contParametro = 0; contParametro < parametrosReais.size(); contParametro++) {
-                if(temp.contains("#" + contParametro)) {
-                    temp = temp.substring(0, temp.indexOf("#" + contParametro)).concat(parametrosReais.get(contParametro) + temp.substring(temp.indexOf("#" + contParametro) + 2));
+        int contLinhas, contParametrosReais, contAninhamento = 0;
+        boolean macroInterna = false;
+        tabela.setNumeroExpansoes(indexPrototipo, tabela.getNumeroExpansoes(indexPrototipo) + 1);
+        
+        for(contLinhas = tabela.getContador(indexPrototipo); !tabela.getLinhaDefinicao(contLinhas).contains("ENDM") || macroInterna; contLinhas++) {
+            temp = tabela.getLinhaDefinicao(contLinhas);
+            
+            if(temp.contains("MACRO")) {
+                contAninhamento++;
+                macroInterna = true;
+                tabela.setPrototipoMacro(temp);
+            } else if(temp.contains("ENDM") && contAninhamento != 0) {
+                contAninhamento--;
+                if(contAninhamento == 0) {
+                    macroInterna = false;
+                    tabela.limpaParametros();
+                }
+                tabela.setDefinicaoMacro(temp, macroInterna);
+            } else {
+                for(contParametrosReais = 0; contParametrosReais < parametrosReais.size(); contParametrosReais++) {
+                    if(temp.contains("#" + contParametrosReais)) {
+                        temp = temp.substring(0, temp.indexOf("#" + contParametrosReais)).concat(parametrosReais.get(contParametrosReais) + temp.substring(temp.indexOf("#" + contParametrosReais) + 2));
+                        contParametrosReais--;
+                    }
+                }
+                if(macroInterna) {
+                    tabela.setDefinicaoMacro(temp, macroInterna);
+                } else {
+                    if(contLinhas == tabela.getContador(indexPrototipo) && linhas.get(indexLinha).trim().indexOf(tabela.getNomeMacro(indexPrototipo)) > 0) {
+                        temp = linhas.get(indexLinha).substring(0, linhas.get(indexLinha).indexOf(tabela.getNomeMacro(indexPrototipo))).concat(temp);
+                    } else if(temp.contains(".SER")) {
+                       temp = temp.substring(0, temp.indexOf(".SER")).concat("00" + tabela.getNumeroExpansoes(indexPrototipo) + temp.substring(temp.indexOf(".SER") + 4));
+                    }
+                    wBuffer.write(temp, 0, temp.length());
+                    wBuffer.newLine();
                 }
             }
-            buffer.write(temp, 0, temp.length());
-            buffer.newLine();
         }
+        
         tabela.limpaParametros();
     }
     
-    private static void modoCopia(BufferedWriter buffer, int indexLinha) throws IOException {
-        buffer.write(linhas.get(indexLinha), 0, linhas.get(indexLinha).length());
-        buffer.newLine();
+    private static void modoCopia(BufferedWriter wBuffer, int cont) throws IOException {
+        wBuffer.write(linhas.get(cont), 0, linhas.get(cont).length());
+        wBuffer.newLine();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
