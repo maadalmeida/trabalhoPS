@@ -200,7 +200,7 @@ public class JFramePM extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenu2ActionPerformed
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
-        JOptionPane.showMessageDialog(null, "Universidade Federal de Pelotas - 2021/2 \n" + "Trabalho de Programação de Sistemas - Grupo 100 \n" + "\n" + "18200581 THALIA DJUNE COSTA LONGARAY\n" +
+        JOptionPane.showMessageDialog(null, "Universidade Federal de Pelotas - 2021/1 \n" + "Trabalho de Programação de Sistemas - Grupo 100 \n" + "\n" + "18200581 THALIA DJUNE COSTA LONGARAY\n" +
             "14101919 LUCAS BRAATZ ARAUJO\n" +
             "19100900 ALEJANDRO TOMAS REYES ALBERONI\n" +
             "14200894 RAFAEL DA SILVA MARTINS\n" +
