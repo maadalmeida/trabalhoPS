@@ -1,5 +1,5 @@
 # Sobre
-TRABALHO PARA DISCIPLINA DE PROGRAMAÇÃO DE SISTEMAS - COMPUTAÇÃO - UFPEL - Integrantes do grupo: Thalia Longaray, Lucas Araujo, Cleber Berndsen, Mateus Almeida, Alejandro Alberoni, Rafael Martins e Joáz Silva - Entrega do primeiro trabalho: Projeto de um processador de macros para o sistema computacional hipotético Z808.
+TRABALHO PARA DISCIPLINA DE PROGRAMAÇÃO DE SISTEMAS - COMPUTAÇÃO - UFPEL - Integrantes do grupo: Thalía Longaray, Lucas Araujo, Cleber Berndsen, Mateus Almeida, Alejandro Alberoni, Rafael Martins e Joáz Silva - Entrega do primeiro trabalho: Projeto de um processador de macros para o sistema computacional hipotético Z808.
 
 
 # Introdução
@@ -17,7 +17,7 @@ Temos também a mesma versão do programa sem a interface gráfica, esse irá le
 Na entrada do projeto no github temos duas pastas, e o arquivo readme.
 > **ProcessadorMacro:** é o projeto do trabalho, nele se encontra todo o código do projeto.
 
-> **ProcessadorMacro - GUI:** Possuí o mesmo projeto de **ProcessadorMacro** porém com interface gráfica
+> **ProcessadorMacro - GUI:** Possui o mesmo projeto de **ProcessadorMacro** porém com interface gráfica
 
 ### Funções e métodos
 
