@@ -16,9 +16,9 @@ Temos também a mesma versão do programa sem a interface gráfica, esse irá le
 
 Na entrada do projeto no github temos duas pastas, e o arquivo readme.
 > **ProcessadorMacro:** é o projeto do trabalho, nele se encontra todo o código do projeto.
+
 > **ProcessadorMacro - GUI:** Possuí o mesmo projeto de **ProcessadorMacro** porém com interface gráfica
 
 ### Funções e métodos
 
-A primeira palavra do método é iniciada com letra minúscula e as demais palavras, se existirem, terão sua primeira letra maiúscula, sendo que não há qualquer tipo de separação entre as palavra. Sua nomeclatura esá em português e está bem descritiva, de modo que possa ser observado pelo seu cabeçalho o que a função faz, ou seja, utilizamos a nomenclatura camelCase. Ex: _modoEscrita_, _fazLeitura_, _pegaTalCoisa_.
-
+A primeira palavra do método é iniciada com letra minúscula e as demais palavras, se existirem, terão sua primeira letra maiúscula, sendo que não há qualquer tipo de separação entre as palavra. Sua nomenclatura está em português e está bem descritiva, de modo que possa ser observado pelo seu cabeçalho o que a função faz, ou seja, utilizamos a nomenclatura camelCase. Ex: _modoEscrita_, _fazLeitura_, _pegaTalCoisa_.
