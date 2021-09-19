@@ -1,4 +1,4 @@
-# Introdução
+# Sobre
 TRABALHO PARA DISCIPLINA DE PROGRAMAÇÃO DE SISTEMAS - COMPUTAÇÃO - UFPEL - Integrantes do grupo: Thalia Longaray, Lucas Araujo, Cleber Berndsen, Mateus Almeida, Alejandro Alberoni, Rafael Martins e Joáz Silva - Entrega do primeiro trabalho: Projeto de um processador de macros para o sistema computacional hipotético Z808.
 
 
