@@ -117,22 +117,22 @@ public class JFramePM extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 114, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 327, Short.MAX_VALUE)))
+                        .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 327, Short.MAX_VALUE))
+                    .addComponent(jTextField1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addComponent(jButton1)
+                .addGap(1, 1, 1)
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -140,7 +140,7 @@ public class JFramePM extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(21, Short.MAX_VALUE))
+                .addContainerGap(13, Short.MAX_VALUE))
         );
 
         pack();
@@ -169,6 +169,8 @@ public class JFramePM extends javax.swing.JFrame {
                 if(verificacaoDefinicao(cont)) {
                     cont = modoDefinicao(rBuffer, cont);
                 } else if((auxChamada = verificacaoChamada(cont)) >= 0) {
+                //se houver chamada de macro na linha, verificacaoChamada retorna index do protótipo da macro chamada
+                //se não, verificacaoChamada retorna -1
                     modoExpansao(wBuffer, auxChamada, cont);
                 } else {
                     modoCopia(wBuffer, cont);
@@ -187,6 +189,8 @@ public class JFramePM extends javax.swing.JFrame {
         }catch(IOException e){
             JOptionPane.showMessageDialog(null,e);
         }
+        this.remove(jButton1);
+        this.repaint();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
@@ -258,10 +262,13 @@ public class JFramePM extends javax.swing.JFrame {
         String temp[] = linhas.get(indexLinha).split(" ");
         int cont, contMacro, numeroMacrosDefinidas = tabela.getNumeroMacrosDefinidas();
         
-        for(contMacro = numeroMacrosDefinidas - 1; contMacro >= 0; contMacro--) {                   //caso haja redefinição, identifica primeiro a definição mais recente
-            for(cont = 0; (cont < 2) && (cont < temp.length); cont++) {                             //caso contenha label na linha de chamada
-                if(temp[cont].contentEquals(tabela.getNomeMacro(contMacro))){                       //equalsIgnoreCase também funciona
-                    return contMacro;                                                               //retorna index da macro chamada
+        for(contMacro = numeroMacrosDefinidas - 1; contMacro >= 0; contMacro--) {
+        //(suporte a redefinição) contagem inicia pelo final do array para identificar sempre a definição mais recente
+            for(cont = 0; (cont < 2) && (cont < temp.length); cont++) {
+            //caso contenha label na linha de chamada
+                if(temp[cont].contentEquals(tabela.getNomeMacro(contMacro))){
+                    return contMacro;
+                    //retorna index da macro chamada
                 }
             }
         }
@@ -271,13 +278,20 @@ public class JFramePM extends javax.swing.JFrame {
     private static int modoDefinicao(BufferedReader rBuffer, int indexLinha) throws IOException {
         String temp = linhas.get(indexLinha);
         int contAninhamento = 0;
+        //contador de definições aninhadas para identificação correta do delimitador final ("ENDM") da macro mais externa
         boolean macroInterna = false;
         tabela.setPrototipoMacro(temp);
+        //adiciona o protótipo da macro no array de prototipos
+        //adiciona no contador o index da linha na qual começa a definição da macro
+        //adiciona temporariamente todos os parametros formais da macro no array parametros
+            //para substituição por #0, #1,...
         
         do {
             if(linhas.get(indexLinha).contains("ENDM") && macroInterna) {
+            //se houver delimitador final na linha e for de uma definição aninhada
                 contAninhamento--;
                 if(contAninhamento == 0) {
+                //se, no momento, não se encontra em definição aninhada, significa que retornou à definição mais externa
                     macroInterna = false;
                 }
             }
@@ -285,15 +299,20 @@ public class JFramePM extends javax.swing.JFrame {
             indexLinha++;
             linhas.set(indexLinha, linhas.get(indexLinha).replace("\t", " "));
             if(linhas.get(indexLinha).contains("MACRO")) {
+            //se houver delimitador inicial na linha, significa que há definição aninhada
                 contAninhamento++;
                 macroInterna = true;
             }
             tabela.setDefinicaoMacro(linhas.get(indexLinha), macroInterna);
+            //insere a linha no array de definições de macro
+                //considera o caso de definição aninhada, mantendo os parâmetros formais da macro interna
         } while(!linhas.get(indexLinha).contains("ENDM") || contAninhamento != 0);
+        //enquanto a linha não contiver delimitador final da definição mais externa
         
         tabela.limpaParametros();
         
         return indexLinha;
+        //retorna index atualizado para o contador das linhas de entrada
     }
     
     private static void modoExpansao(BufferedWriter wBuffer, int indexPrototipo, int indexLinha) throws IOException {
@@ -302,38 +321,59 @@ public class JFramePM extends javax.swing.JFrame {
         tabela.limpaParametros();
         String temp;
         int contLinhas, contParametrosReais, contAninhamento = 0;
+        //contLinhas -> contador das linhas da definição
+        //contParametrosReais -> contador para auxiliar na substituição dos parâmetros das linhas da definição pelos parâmetros reais
+        //contAninhamento -> contador de definições aninhadas
+            //define as macros internas encontradas no momento da expansão da macro mais externa
         boolean macroInterna = false;
         tabela.setNumeroExpansoes(indexPrototipo, tabela.getNumeroExpansoes(indexPrototipo) + 1);
+        //(suporte a .SER) incrementa número de expansões que a macro já teve
         
         for(contLinhas = tabela.getContador(indexPrototipo); !tabela.getLinhaDefinicao(contLinhas).contains("ENDM") || macroInterna; contLinhas++) {
+        //enquanto a linha não contiver delimitador final da definição mais externa
             temp = tabela.getLinhaDefinicao(contLinhas);
             
             if(temp.contains("MACRO")) {
+            //se houver delimitador inicial na linha, significa que há definição aninhada
                 contAninhamento++;
                 macroInterna = true;
                 tabela.setPrototipoMacro(temp);
+                //adiciona o protótipo da macro interna no array de prototipos
+                //adiciona no contador o index da linha na qual começa a definição da macro interna
+                //adiciona temporariamente todos os parametros formais da macro interna no array parametros
+                    //para substituição por #0, #1,...
             } else if(temp.contains("ENDM") && contAninhamento != 0) {
+            //se houver delimitador final de macro interna
                 contAninhamento--;
                 if(contAninhamento == 0) {
+                //se, no momento, não se encontra em definição aninhada, significa que retornou à definição mais externa
                     macroInterna = false;
                     tabela.limpaParametros();
                 }
                 tabela.setDefinicaoMacro(temp, macroInterna);
+                //insere a linha da macro interna no array de definições de macro
             } else {
+            //a linha pode ser de definição da macro mais externa ou de uma definição aninhada
                 for(contParametrosReais = 0; contParametrosReais < parametrosReais.size(); contParametrosReais++) {
                     if(temp.contains("#" + contParametrosReais)) {
                         temp = temp.substring(0, temp.indexOf("#" + contParametrosReais)).concat(parametrosReais.get(contParametrosReais) + temp.substring(temp.indexOf("#" + contParametrosReais) + 2));
                         contParametrosReais--;
                     }
                 }
+                //laço que realiza a substituição dos parâmetros da linha pelos parâmetros reais (da chamada)
                 if(macroInterna) {
+                //se for definição aninhada
                     tabela.setDefinicaoMacro(temp, macroInterna);
+                    //só insere a linha no array de definições de macro
                 } else {
                     if(contLinhas == tabela.getContador(indexPrototipo) && linhas.get(indexLinha).trim().indexOf(tabela.getNomeMacro(indexPrototipo)) > 0) {
                         temp = linhas.get(indexLinha).substring(0, linhas.get(indexLinha).indexOf(tabela.getNomeMacro(indexPrototipo))).concat(temp);
-                    } else if(temp.contains(".SER")) {
+                    }
+                    //verifica se é a linha de chamada e se há label, para não descartar
+                    else if(temp.contains(".SER")) {
                        temp = temp.substring(0, temp.indexOf(".SER")).concat("00" + tabela.getNumeroExpansoes(indexPrototipo) + temp.substring(temp.indexOf(".SER") + 4));
                     }
+                    //verifica se há .SER e, caso haja, substitui pelo número correspondente ao número da expansão da macro 
                     wBuffer.write(temp, 0, temp.length());
                     wBuffer.newLine();
                 }

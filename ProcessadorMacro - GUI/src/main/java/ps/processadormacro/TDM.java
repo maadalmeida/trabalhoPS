@@ -4,7 +4,13 @@ import static ps.processadormacro.PM.linhas;
 
 public class TDM {
     private ArrayList<String> prototipos, definicoes, parametros, prototiposMacrosInternas, parametrosMacrosInternas;
+    //prototipos -> armazena os prototipos das macros definidas
+    //definicoes -> armazena as linhas das definições das macros
+    //parametros -> array de uso temporário para auxiliar nas substituições de parâmetros, tanto formais quanto reais
+    //prototiposMacrosInternas, parametrosMacrosInternas -> arrays auxiliares para garantir processamento correto das definições aninhadas
     private ArrayList<Integer> contador, numeroExpansoes;
+    //contador -> armazena o número referente a posição inicial de cada definição de macro no array definicoes
+    //numeroExpansoes -> armazena o número referente a quantidade de expansões que uma macro já teve
    
     public TDM() {
         this.contador = new ArrayList<>();
@@ -17,6 +23,7 @@ public class TDM {
     }
     
     protected void setPrototipoMacro(String prototipo) {
+    //adiciona o protótipo da macro no array de prototipos
         prototipos.add(prototipo.substring(0, prototipo.indexOf("MACRO")).concat(prototipo.substring(prototipo.indexOf("MACRO") + 6)));
         contador.add(definicoes.size());
         numeroExpansoes.add(0);
@@ -24,6 +31,8 @@ public class TDM {
     }
     
     private void setParametros(String particaoLinha) {
+    //método auxiliar de setPrototipoMacro e getParametrosChamada
+    //adiciona todos os parametros identificados no array parametros
         String parametrosLinha[];
         int aux = particaoLinha.indexOf(";"), cont;
         if(aux != -1) {
@@ -40,6 +49,7 @@ public class TDM {
     }
     
     protected void setDefinicaoMacro(String linha, boolean macroInterna) {
+    //adiciona linha no array de definições de macro
         String temp = linha;
         if(temp.contains(";")) {
             temp = temp.substring(0, temp.indexOf(";"));
@@ -140,7 +150,9 @@ public class TDM {
         }
     }
 
-    protected int indexOcorrenciaParametro(String linha, String parametro) {
+    private int indexOcorrenciaParametro(String linha, String parametro) {
+    //método auxiliar de setDefinicaoMacro
+    //retorna a posição da linha a partir da qual o parâmetro pode ocorrer
         int i, j = 0;
         String s = linha.replace(",", " ");
         for(i = 0; i < s.split(" ").length; i++) {
@@ -153,40 +165,50 @@ public class TDM {
     }
     
     protected void setNumeroExpansoes(int indexPrototipo, int numero) {
+    //atualiza posição do array numeroExpansoes
         numeroExpansoes.set(indexPrototipo, numero);
     }
     
     protected int getNumeroExpansoes(int indexPrototipo) {
+    //retorna número de expansões da macro correspondente
         return numeroExpansoes.get(indexPrototipo);
     }
     
     protected int getNumeroMacrosDefinidas() {
+    //retorna número de macros já definidas
         return prototipos.size();
     }
     
     protected String getNomeMacro(int index) {
+    //retorna nome da macro correspondente, sem delimitador e sem parâmetros
         return prototipos.get(index).substring(0, prototipos.get(index).indexOf(" "));
     }
     
     protected ArrayList<String> getParametrosChamada(int indexPrototipo, int indexChamada) {
+    //identifica os parametros reais de uma linha de chamada
         String nomeMacro = getNomeMacro(indexPrototipo), chamada = linhas.get(indexChamada);
         setParametros(chamada.substring(chamada.indexOf(nomeMacro) + nomeMacro.length() + 1));
         return parametros;
     }
     
     protected int getContador(int indexPrototipo) {
+    //retorna número referente a posição inicial da definição da macro no array definições
         return contador.get(indexPrototipo);
     }
     
     protected String getLinhaDefinicao(int indexLinha) {
+    //retorna a linha do array de definições
         return definicoes.get(indexLinha);
     }
     
     protected void limpaParametros() {
+    //limpa o array parametros
         parametros.clear();
     }
     
-    protected String[] limpaEspacosParametros(String[] parametros) {
+    private String[] limpaEspacosParametros(String[] parametros) {
+    //método auxiliar de setDefinicaoMacro
+    //limpa espaços extras
         int cont;
         for(cont = 0; cont < parametros.length; cont++) {
             if(parametros[cont].length() > 1 && parametros[cont].contains(" ")) {
