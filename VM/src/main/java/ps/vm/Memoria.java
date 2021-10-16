@@ -10,7 +10,7 @@ public class Memoria {
         this.palavras = new String[32768];
         Arrays.fill(palavras, "");
         setPalavra("0000000000001010", 2);
-        for(int cont = 3; cont < getMaxPilha(); cont++) {
+        for(int cont = 3; cont < 13; cont++) {
             palavras[cont] = "**pilha**";
         }
     }
@@ -66,16 +66,5 @@ public class Memoria {
             }
         }
         return 0;                                                               //pilha cheia
-    }
-    
-    private int getMaxPilha() {
-        int cont, aux = 15, max = 0;
-        char[] temp = getPalavra(2).toCharArray();
-        for(cont = 1; aux >= 0; cont *= 2) {
-            if(temp[aux--] == '1') {
-                max += cont;
-            }
-        }
-        return max;
     }
 }
